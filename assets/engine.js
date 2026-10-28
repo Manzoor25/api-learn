@@ -304,19 +304,35 @@
     app.replaceChildren(...parts, el("footer", { class: "wrap" }, ["Vendor numbers are labeled. Patterns are not limits."]));
   }
 
+  function mapPoint(mod) {
+    if (mod.map && typeof mod.map.pull === "number") return mod.map;
+    if (typeof mod.pull === "number") return { pull: mod.pull, realtime: mod.realtime || 0 };
+    return null;
+  }
+
   function renderHome() {
     const app = document.getElementById("app");
-    const modules = window.API_LEARN_MODULES.filter((mod) => mod.map);
     const map = el("div", { class: "map", "aria-label": "Pull versus push, batch versus real time" });
     map.append(el("div", { class: "map-label", style: "left:12px;bottom:8px" }, ["pull"]));
     map.append(el("div", { class: "map-label", style: "right:12px;bottom:8px" }, ["push"]));
     map.append(el("div", { class: "map-label", style: "left:12px;top:8px" }, ["real-time"]));
     map.append(el("div", { class: "map-label", style: "left:12px;bottom:28px" }, ["batch"]));
-    modules.forEach((mod) => {
+    const placed = [];
+    window.API_LEARN_MODULES.forEach((mod) => {
+      const point = mapPoint(mod);
+      if (!point) return;
+      let left = 12 + point.pull * 74;
+      let top = 16 + (1 - point.realtime) * 68;
+      placed.forEach((other) => {
+        if (Math.abs(other.left - left) < 16 && Math.abs(other.top - top) < 9) {
+          top = Math.min(86, other.top + 10);
+        }
+      });
+      placed.push({ left: left, top: top });
       const tile = el("a", {
         class: "tile",
         href: "modules/" + mod.id + ".html",
-        style: "left:" + (8 + mod.map.pull * 84) + "%;top:" + (12 + (1 - mod.map.realtime) * 76) + "%",
+        style: "left:" + left + "%;top:" + top + "%",
       }, [el("i", { class: "pulse" }), mod.short || mod.title]);
       map.append(tile);
     });

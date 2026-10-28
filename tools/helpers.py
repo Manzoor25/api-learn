@@ -51,4 +51,6 @@ def mod(**kwargs):
     kwargs.setdefault("sections", [])
     kwargs.setdefault("diagrams", [])
     kwargs.setdefault("examples", [])
+    if "pull" in kwargs and "map" not in kwargs:
+        kwargs["map"] = {"pull": kwargs["pull"], "realtime": kwargs.get("realtime", 0)}
     return kwargs

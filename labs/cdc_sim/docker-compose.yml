@@ -1,0 +1,11 @@
+# Optional. The tests use SQLite and do not start this file.
+# Postgres logical replication is the production rhyme of labs/cdc_sim/sim.py.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: lab
+      POSTGRES_DB: lab
+    ports:
+      - "54329:5432"
+    command: ["postgres", "-c", "wal_level=logical"]

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cheat sheet</title>
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+  <header class="top"><div class="wrap"><a class="brand" href="../index.html">How data moves</a></div></header>
+  <main class="wrap">
+    <h1>Cheat sheet</h1>
+    <p class="lede">Limitation, workaround, landing. The long version is <a href="../CHEAT_SHEET.md">CHEAT_SHEET.md</a>.</p>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <tr><th>Family</th><th>Limitation</th><th>Workaround</th></tr>
+        <tr><td>Offset</td><td>Slow at depth. Drifts if rows move.</td><td>Keyset, cursor, or a snapshot file.</td></tr>
+        <tr><td>Cursor</td><td>Cannot parallelize.</td><td>Sequential loop, or ask for a file.</td></tr>
+        <tr><td>Rate limit</td><td>Threads cannot beat pages / rate.</td><td>Bigger pages, export, incremental, higher quota.</td></tr>
+        <tr><td>Bulk export</td><td>URLs expire. Snapshot, not a tail.</td><td>Poll, checksum, refresh URLs from the job.</td></tr>
+        <tr><td>Webhooks</td><td>Drops and duplicates.</td><td>Signature, dedup, reconciliation pull.</td></tr>
+        <tr><td>Stream / CDC</td><td>Replay duplicates. Retention is a cliff.</td><td>Commit after write. Idempotent key. Alert on lag.</td></tr>
+        <tr><td>File drop</td><td>Half-written files.</td><td>Done marker. Quarantine bad schemas.</td></tr>
+        <tr><td>Scrape / email</td><td>No contract. May be forbidden.</td><td>Ask for an API or a file. Validate headers.</td></tr>
+      </table>
+    </div>
+    <p>Write the page, then the checkpoint. Dedup on a stable key. Compare unique keys to the source count.</p>
+  </main>
+</body>
+</html>

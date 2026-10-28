@@ -22,7 +22,7 @@ Times are reading plus stepping the diagrams, not a certification.
 
 | Order | What | Time |
 | --- | --- | --- |
-| 1 | Home map, then [decision guide](DECISION_GUIDE.md) | 30 min |
+| 1 | [Common API types](modules/common-apis.html), then the home map | 25 min |
 | 2 | [REST pagination](modules/rest-pagination.html) and [rate limits](modules/rate-limits.html) | 40 min |
 | 3 | GraphQL, SOAP, gRPC, batch calls, query APIs | 50 min |
 | 4 | Bulk export, file drops, sharing | 40 min |

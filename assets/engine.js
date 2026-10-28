@@ -47,6 +47,7 @@
       el("div", { class: "wrap" }, [
         el("a", { class: "brand", href: rootPrefix() + "index.html" }, ["How data moves"]),
         el("nav", { class: "top" }, [
+          el("a", { href: rootPrefix() + "modules/common-apis.html" }, ["Common"]),
           el("a", { href: rootPrefix() + "index.html" }, ["Map"]),
           el("a", { href: rootPrefix() + "modules/decision.html" }, ["Decide"]),
           el("a", { href: rootPrefix() + "modules/simulators.html" }, ["Simulators"]),
@@ -345,7 +346,37 @@
     });
     app.replaceChildren(header(), el("main", { class: "wrap" }, [
       el("h1", {}, ["How data leaves a system, and how you land it without losing it"]),
-      el("p", { class: "lede" }, ["Every source answers five questions: who moves the data, how much moves, how fresh it must be, whether you want a snapshot or a history, and what the provider refuses to do. The tiles pulse. Open one."]),
+      el("p", { class: "lede" }, ["Start with the six API types you will actually meet. The map below is the full catalog, including files, databases, and streams."]),
+      el("h2", {}, ["Most common API types"]),
+      el("p", {}, ["This is a teaching order, not a market-share number. ", el("a", { href: "modules/common-apis.html" }, ["Read the short guide"]), ", or open the type you already have."]),
+      el("div", { class: "grid" }, [
+        el("a", { class: "card family-card", href: "modules/rest-pagination.html" }, [
+          el("strong", {}, ["REST JSON"]),
+          el("span", { class: "small" }, ["The default. You call a URL, JSON comes back, usually one page at a time. GitHub, Stripe, FDIC, most SaaS."]),
+        ]),
+        el("a", { class: "card family-card", href: "modules/graphql.html" }, [
+          el("strong", {}, ["GraphQL"]),
+          el("span", { class: "small" }, ["One POST, you name the fields, you follow a cursor. Watch the query cost. Common on newer product APIs."]),
+        ]),
+        el("a", { class: "card family-card", href: "modules/webhooks.html" }, [
+          el("strong", {}, ["Webhooks"]),
+          el("span", { class: "small" }, ["They POST to you when something changes. A doorbell, not a ledger. Always reconcile."]),
+        ]),
+        el("a", { class: "card family-card", href: "modules/bulk-export.html" }, [
+          el("strong", {}, ["Bulk export"]),
+          el("span", { class: "small" }, ["A job, then a file. Use this when paging would take an hour. URLs expire."]),
+        ]),
+        el("a", { class: "card family-card", href: "modules/soap.html" }, [
+          el("strong", {}, ["SOAP"]),
+          el("span", { class: "small" }, ["XML and a WSDL. Still how many banks and older ERPs expose data. A fault can hide in HTTP 200."]),
+        ]),
+        el("a", { class: "card family-card", href: "modules/grpc.html" }, [
+          el("strong", {}, ["gRPC"]),
+          el("span", { class: "small" }, ["Protobuf, mostly inside a company. A stream is not storage. Uncommon as a public extract API."]),
+        ]),
+      ]),
+      el("h2", {}, ["The full map"]),
+      el("p", { class: "small" }, ["Left is pull, right is push. Top is real-time, bottom is batch. Open a tile."]),
       legend(),
       map,
       el("h2", {}, ["Start here"]),

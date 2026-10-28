@@ -1,5 +1,267 @@
 window.API_LEARN_MODULES = [
   {
+    "id": "common-apis",
+    "title": "The API types you will actually meet",
+    "short": "Common APIs",
+    "minutes": 20,
+    "summary": "Six shapes cover almost every pull. REST JSON is the default. GraphQL, webhooks, and bulk export are the other three you should recognize on sight. SOAP and gRPC are common too, but in older enterprises and inside companies, not on most public data APIs.",
+    "analogy": "Six doors. You do not need the floor plan of the building until you know which door you are standing in front of.",
+    "sections": [
+      {
+        "h": "This is a teaching judgment, not a census",
+        "p": [
+          "Nobody publishes a reliable 'percent of all APIs' number that is worth quoting. What follows is the set a data engineer hits in the first year: public data, SaaS, and the internal platform. If the docs do not match one of these, use the full map. Do not force a source into a type because it is familiar."
+        ]
+      },
+      {
+        "h": "1. REST JSON. The default",
+        "p": [
+          "A URL, an HTTP verb, and a JSON body. This is GitHub, Stripe, FDIC BankFind, and most SaaS products. You ask. They return a page. You come back.",
+          "The variation that matters is pagination, not the word REST. Offset or page number, a cursor, a Link header, or an OData @odata.nextLink. Microsoft Graph is REST with nextLink. Stripe's list API is REST with a cursor hiding in starting_after. FDIC is REST with limit and offset, maximum 10,000.",
+          "The usual pain is a page cap plus a rate limit. Read the maximum page size and the rate-limit window before you add threads. The deeper lesson is the REST pagination and rate-limit modules."
+        ]
+      },
+      {
+        "h": "2. GraphQL. You name the fields",
+        "p": [
+          "One POST, usually to /graphql, with a query document. You ask for the fields you want, including nested objects, and you page with a connection cursor: edges, node, pageInfo, endCursor.",
+          "You meet it on GitHub's GraphQL API, Shopify, and a lot of product APIs built after about 2018. It is less common than REST for bulk extracts, and more common when a product team got tired of clients over-fetching.",
+          "The provider's defense is query cost, not a page-size sentence. A wide query can be rejected even if the page is small. You still cannot parallelize an opaque cursor."
+        ]
+      },
+      {
+        "h": "3. Webhooks. They call you",
+        "p": [
+          "You give them a URL. When something happens, they POST a JSON body to it, usually with a signature. Stripe, GitHub, Slack, and shop platforms do this for orders, pushes, and messages.",
+          "This is not an extract. It is a doorbell. Events drop, duplicate, and arrive late. A webhook feed without a reconciliation pull against the REST API will lose rows. Verify the signature, dedup on the event id, ack fast."
+        ]
+      },
+      {
+        "h": "4. Bulk export. A job, then a file",
+        "p": [
+          "You POST a job, poll until it is complete, then download a compressed file. Sometimes the download URL expires. Salesforce Bulk API 2.0 is the textbook: more than 2,000 records is their own hint to stop using synchronous calls. Defender Vulnerability Management says the same thing in different words: JSON pages for smaller estates, files past about 100,000 devices.",
+          "If the docs mention jobs, exports, or download URLs, take that path for the snapshot. Page only if they do not offer it."
+        ]
+      },
+      {
+        "h": "5. SOAP. Still in the building",
+        "p": [
+          "XML envelope, a WSDL contract, and paging fields inside the body. You will meet it in banks, governments, and older ERP systems. New public APIs are rarely SOAP. Old systems that hold the money often are.",
+          "HTTP 200 can still carry a SOAP fault. Do not land a fault as a row. If they also drop a nightly file, take the file."
+        ]
+      },
+      {
+        "h": "6. gRPC. Inside the company",
+        "p": [
+          "A protobuf contract and HTTP/2. Unary calls look like a function. Server streaming looks like a list that never becomes a web page. Common between internal services. Uncommon as the public API a partner gives you for a nightly extract.",
+          "A stream is not storage. Checkpoint the last id, and set a deadline. If the public door is REST and the internal door is gRPC, pull from whichever one your team is allowed to call."
+        ]
+      },
+      {
+        "h": "How to name it in ten minutes",
+        "p": [
+          "Open the docs and find one example that returns two records. Look at the URL and the body. POST /graphql means GraphQL. A WSDL or an XML envelope means SOAP. A .proto file means gRPC. A job id and a download URL means bulk export. A 'we will POST to your server' section means webhooks. Everything else that returns JSON from a URL you call is REST. Then find the pagination parameters and the rate-limit sentence before you write a loop."
+        ]
+      }
+    ],
+    "diagrams": [
+      {
+        "type": "sequence",
+        "title": "Name the door from one example call",
+        "blurb": "Each arrow is one interaction. Step through it.",
+        "actors": [
+          "You",
+          "Docs"
+        ],
+        "steps": [
+          {
+            "from": 0,
+            "to": 1,
+            "label": "one example, two rows",
+            "title": "Read one call",
+            "text": "Ignore the marketing page. You want a real request and a real response."
+          },
+          {
+            "from": 1,
+            "to": 0,
+            "label": "URL, body, headers",
+            "title": "Look at the shape",
+            "text": "JSON from a URL you call is REST. A query document is GraphQL. XML plus WSDL is SOAP."
+          },
+          {
+            "from": 0,
+            "to": 1,
+            "label": "pagination and limit",
+            "title": "Find the constraint",
+            "text": "Page size, cursor or offset, rate-limit window, and whether a file export exists."
+          },
+          {
+            "from": 1,
+            "to": 0,
+            "label": "named type",
+            "title": "Stop guessing",
+            "text": "Then open that module. Do not start with threads."
+          }
+        ]
+      },
+      {
+        "type": "flow",
+        "title": "The four you will use on a pull",
+        "blurb": "Packets move only on the highlighted hop.",
+        "nodes": [
+          {
+            "id": "rest",
+            "label": "REST page",
+            "kind": "source",
+            "x": 16,
+            "y": 96
+          },
+          {
+            "id": "hook",
+            "label": "Webhook",
+            "kind": "consumer",
+            "x": 166,
+            "y": 96
+          },
+          {
+            "id": "job",
+            "label": "Export job",
+            "kind": "queue",
+            "x": 316,
+            "y": 96
+          },
+          {
+            "id": "file",
+            "label": "File",
+            "kind": "storage",
+            "x": 466,
+            "y": 96
+          }
+        ],
+        "steps": [
+          {
+            "title": "REST is the daily door",
+            "text": "Most extracts start here. Page, land, checkpoint.",
+            "hot": [
+              "rest"
+            ]
+          },
+          {
+            "title": "Webhook is a hint",
+            "text": "It tells you something changed. It is not the ledger.",
+            "hot": [
+              "hook",
+              "rest"
+            ],
+            "packets": [
+              {
+                "from": "hook",
+                "to": "rest"
+              }
+            ]
+          },
+          {
+            "title": "Export when paging is the hour",
+            "text": "A job writes the file. You download it once.",
+            "hot": [
+              "rest",
+              "job"
+            ],
+            "packets": [
+              {
+                "from": "rest",
+                "to": "job"
+              }
+            ]
+          },
+          {
+            "title": "Land the file",
+            "text": "Checksum, then bronze. The page loop was the fallback.",
+            "hot": [
+              "job",
+              "file"
+            ],
+            "packets": [
+              {
+                "from": "job",
+                "to": "file"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "state",
+        "title": "Which common type is this?",
+        "blurb": "The glowing state is where you are.",
+        "states": [
+          "REST",
+          "GraphQL",
+          "webhook",
+          "export",
+          "SOAP",
+          "gRPC"
+        ],
+        "steps": [
+          {
+            "title": "REST",
+            "text": "You call a URL. JSON comes back. Look for limit, offset, cursor, Link, or nextLink.",
+            "state": "REST"
+          },
+          {
+            "title": "GraphQL",
+            "text": "You POST a query. Page with endCursor. Watch the cost limit.",
+            "state": "GraphQL"
+          },
+          {
+            "title": "Webhook",
+            "text": "They POST to you. Signature, dedup, then reconcile.",
+            "state": "webhook"
+          },
+          {
+            "title": "Export",
+            "text": "Job, poll, download. URLs expire.",
+            "state": "export"
+          },
+          {
+            "title": "SOAP",
+            "text": "XML envelope. A fault can hide in HTTP 200.",
+            "state": "SOAP"
+          },
+          {
+            "title": "gRPC",
+            "text": "Protobuf and a stream or a unary call. Checkpoint the last id.",
+            "state": "gRPC"
+          }
+        ]
+      }
+    ],
+    "examples": [
+      {
+        "domain": "REST",
+        "name": "FDIC, GitHub, Stripe",
+        "fact": "Checked 2026-10-28: FDIC is limit/offset, max 10,000. GitHub pages with a Link header and limits 60/hour unauthenticated, 5,000/hour with a token. Stripe lists use limit 1-100 and starting_after.",
+        "url": "https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api",
+        "source": "GitHub pagination docs"
+      },
+      {
+        "domain": "GraphQL",
+        "name": "GitHub GraphQL",
+        "fact": "GitHub documents a separate query-cost limit from the REST budget. Confirm the current points on that page before you estimate a pull.",
+        "url": "https://docs.github.com/en/graphql/overview/rate-limits-and-query-limits-for-the-graphql-api",
+        "source": "GitHub GraphQL limits"
+      },
+      {
+        "domain": "Bulk",
+        "name": "Salesforce and Defender",
+        "fact": "Checked 2026-10-28: Salesforce says more than 2,000 records is a Bulk API 2.0 candidate. Defender says JSON pages under 100-K devices and files above that.",
+        "url": "https://developer.salesforce.com/docs/platform/api-asynch/guide/asynch-api-intro.html",
+        "source": "Salesforce Bulk API intro"
+      }
+    ],
+    "landing": "Whatever the type, bronze is the raw response or file plus the cursor, job id, or event id. Silver dedups on the primary key. The type tells you how the bytes arrive. It does not change that rule."
+  },
+  {
     "id": "rest-pagination",
     "family": "A1",
     "title": "REST pagination",
@@ -229,7 +491,11 @@ window.API_LEARN_MODULES = [
         "source": "GitHub Docs"
       }
     ],
-    "landing": "Raw pages as NDJSON or the original JSON, plus the request URL and cursor in the file name. Silver is deduped on the primary key. Gold is the business table. Do not compact before the page is durable."
+    "landing": "Raw pages as NDJSON or the original JSON, plus the request URL and cursor in the file name. Silver is deduped on the primary key. Gold is the business table. Do not compact before the page is durable.",
+    "map": {
+      "pull": 0.12,
+      "realtime": 0.28
+    }
   },
   {
     "id": "rate-limits",
@@ -381,7 +647,11 @@ window.API_LEARN_MODULES = [
         "source": "NVD, numbers not extracted"
       }
     ],
-    "landing": "Land pages as they succeed. A checkpoint plus a client limiter means a multi-hour pull can stop and resume without duplicating finished pages."
+    "landing": "Land pages as they succeed. A checkpoint plus a client limiter means a multi-hour pull can stop and resume without duplicating finished pages.",
+    "map": {
+      "pull": 0.18,
+      "realtime": 0.34
+    }
   },
   {
     "id": "graphql",
@@ -533,7 +803,11 @@ window.API_LEARN_MODULES = [
         "source": "GraphQL.org"
       }
     ],
-    "landing": "Store the raw response, the query document hash, and the end cursor. Silver projects the nodes you asked for. If the query changes, treat it as a new stream, not a continuation."
+    "landing": "Store the raw response, the query document hash, and the end cursor. Silver projects the nodes you asked for. If the query changes, treat it as a new stream, not a continuation.",
+    "map": {
+      "pull": 0.16,
+      "realtime": 0.62
+    }
   },
   {
     "id": "soap",
@@ -604,7 +878,11 @@ window.API_LEARN_MODULES = [
         "source": "W3C SOAP 1.2"
       }
     ],
-    "landing": "Store the raw XML page and a parsed NDJSON projection. Keep the raw envelope until silver validation passes. Schema changes show up as new elements, not as a friendly JSON field."
+    "landing": "Store the raw XML page and a parsed NDJSON projection. Keep the raw envelope until silver validation passes. Schema changes show up as new elements, not as a friendly JSON field.",
+    "map": {
+      "pull": 0.1,
+      "realtime": 0.12
+    }
   },
   {
     "id": "grpc",
@@ -715,7 +993,11 @@ window.API_LEARN_MODULES = [
         "source": "grpc.io"
       }
     ],
-    "landing": "Append messages to a durable log or object files with the last id. Silver starts after the checkpoint advances. A cancelled RPC is a retry, not a successful empty extract."
+    "landing": "Append messages to a durable log or object files with the last id. Silver starts after the checkpoint advances. A cancelled RPC is a retry, not a successful empty extract.",
+    "map": {
+      "pull": 0.22,
+      "realtime": 0.72
+    }
   },
   {
     "id": "batch-requests",
@@ -785,7 +1067,11 @@ window.API_LEARN_MODULES = [
         "source": "Graph JSON batching overview"
       }
     ],
-    "landing": "Write a result row per inner request, including status and error. Silver keeps only the successes. The retry job reads the failures, not the whole batch."
+    "landing": "Write a result row per inner request, including status and error. Silver keeps only the successes. The retry job reads the failures, not the whole batch.",
+    "map": {
+      "pull": 0.2,
+      "realtime": 0.3
+    }
   },
   {
     "id": "query-apis",
@@ -912,7 +1198,11 @@ window.API_LEARN_MODULES = [
         "source": "Search pagination pattern"
       }
     ],
-    "landing": "One object per slice, plus a manifest of slices. Completeness is 'every slice succeeded', not 'the last call returned fewer than the cap' if a middle slice failed."
+    "landing": "One object per slice, plus a manifest of slices. Completeness is 'every slice succeeded', not 'the last call returned fewer than the cap' if a middle slice failed.",
+    "map": {
+      "pull": 0.24,
+      "realtime": 0.4
+    }
   },
   {
     "id": "bulk-export",
@@ -1106,7 +1396,11 @@ window.API_LEARN_MODULES = [
         "source": "Microsoft Learn"
       }
     ],
-    "landing": "Land the files untouched in bronze, with job id, snapshot time, and URL expiry. Silver parses after checksum. Do not delete the source file until silver succeeds."
+    "landing": "Land the files untouched in bronze, with job id, snapshot time, and URL expiry. Silver parses after checksum. Do not delete the source file until silver succeeds.",
+    "map": {
+      "pull": 0.28,
+      "realtime": 0.08
+    }
   },
   {
     "id": "file-drops",
@@ -1253,7 +1547,11 @@ window.API_LEARN_MODULES = [
         "source": "CSV is a convention; confirm the partner spec"
       }
     ],
-    "landing": "Bronze is the file plus arrival metadata. Silver is parsed rows with the source file name. A rerun of the same file id must not double the facts."
+    "landing": "Bronze is the file plus arrival metadata. Silver is parsed rows with the source file name. A rerun of the same file id must not double the facts.",
+    "map": {
+      "pull": 0.32,
+      "realtime": 0.06
+    }
   },
   {
     "id": "data-sharing",
@@ -1377,7 +1675,11 @@ window.API_LEARN_MODULES = [
         "source": "FDIC"
       }
     ],
-    "landing": "If you copy, land a versioned snapshot. If you do not copy, record the share version your gold model was certified against."
+    "landing": "If you copy, land a versioned snapshot. If you do not copy, record the share version your gold model was certified against.",
+    "map": {
+      "pull": 0.4,
+      "realtime": 0.18
+    }
   },
   {
     "id": "webhooks",
@@ -1572,7 +1874,11 @@ window.API_LEARN_MODULES = [
         "source": "Pattern"
       }
     ],
-    "landing": "Bronze is the raw body, signature result, and event id. Silver is the business object after dedup. Reconciliation writes the same silver key so a late webhook and a pull converge."
+    "landing": "Bronze is the raw body, signature result, and event id. Silver is the business object after dedup. Reconciliation writes the same silver key so a late webhook and a pull converge.",
+    "map": {
+      "pull": 0.78,
+      "realtime": 0.66
+    }
   },
   {
     "id": "delta-incremental",
@@ -1708,7 +2014,11 @@ window.API_LEARN_MODULES = [
         "source": "Microsoft Learn"
       }
     ],
-    "landing": "Bronze stores each delta page and the token that produced it. Silver merges on the primary key, applies tombstones, and records the token only after the merge commits."
+    "landing": "Bronze stores each delta page and the token that produced it. Silver merges on the primary key, applies tombstones, and records the token only after the merge commits.",
+    "map": {
+      "pull": 0.36,
+      "realtime": 0.55
+    }
   },
   {
     "id": "streaming",
@@ -1896,7 +2206,11 @@ window.API_LEARN_MODULES = [
         "source": "Event Hubs overview"
       }
     ],
-    "landing": "Bronze can be the captured log. Silver is deduped events. Gold is aggregates. Keep the consumer group offset outside the gold table so a rebuild can replay."
+    "landing": "Bronze can be the captured log. Silver is deduped events. Gold is aggregates. Keep the consumer group offset outside the gold table so a rebuild can replay.",
+    "map": {
+      "pull": 0.7,
+      "realtime": 0.86
+    }
   },
   {
     "id": "realtime-protocols",
@@ -2009,7 +2323,11 @@ window.API_LEARN_MODULES = [
         "source": "WHATWG SSE"
       }
     ],
-    "landing": "Append-only event files with the resume token in the manifest. Do not treat an open socket as proof of completeness."
+    "landing": "Append-only event files with the resume token in the manifest. Do not treat an open socket as proof of completeness.",
+    "map": {
+      "pull": 0.82,
+      "realtime": 0.92
+    }
   },
   {
     "id": "database-extract",
@@ -2121,7 +2439,11 @@ window.API_LEARN_MODULES = [
         "source": "JDBC basics"
       }
     ],
-    "landing": "Bronze is the query text, the replica timestamp, and the files. Silver merges on the primary key. A full refresh is allowed when the table is small and deletes must be exact."
+    "landing": "Bronze is the query text, the replica timestamp, and the files. Silver merges on the primary key. A full refresh is allowed when the table is small and deletes must be exact.",
+    "map": {
+      "pull": 0.14,
+      "realtime": 0.22
+    }
   },
   {
     "id": "cdc",
@@ -2226,7 +2548,11 @@ window.API_LEARN_MODULES = [
         "source": "Debezium Postgres connector"
       }
     ],
-    "landing": "Bronze can store the change events with LSN. Silver is the current row plus a history table if you need it. Gold does not read the log directly."
+    "landing": "Bronze can store the change events with LSN. Silver is the current row plus a history table if you need it. Gold does not read the log directly.",
+    "map": {
+      "pull": 0.48,
+      "realtime": 0.74
+    }
   },
   {
     "id": "managed-connectors",
@@ -2344,7 +2670,11 @@ window.API_LEARN_MODULES = [
         "source": "Airbyte docs"
       }
     ],
-    "landing": "Land where the product writes, then run your own silver tests. Keep a source-of-record count outside the connector's success flag."
+    "landing": "Land where the product writes, then run your own silver tests. Keep a source-of-record count outside the connector's success flag.",
+    "map": {
+      "pull": 0.5,
+      "realtime": 0.42
+    }
   },
   {
     "id": "scraping",
@@ -2436,7 +2766,11 @@ window.API_LEARN_MODULES = [
         "source": "Practice site"
       }
     ],
-    "landing": "If a scrape is allowed, bronze is raw HTML. Silver is parsed fields with the selector version. A zero-row run is an incident, not an empty day."
+    "landing": "If a scrape is allowed, bronze is raw HTML. Silver is parsed fields with the selector version. A zero-row run is an incident, not an empty day.",
+    "map": {
+      "pull": 0.08,
+      "realtime": 0.1
+    }
   },
   {
     "id": "email-reports",
@@ -2544,7 +2878,11 @@ window.API_LEARN_MODULES = [
         "source": "Email is a message format, not a data contract"
       }
     ],
-    "landing": "Store the raw attachment and the message id. Silver loads only if the header matches the contract hash."
+    "landing": "Store the raw attachment and the message id. Silver loads only if the header matches the contract hash.",
+    "map": {
+      "pull": 0.55,
+      "realtime": 0.05
+    }
   },
   {
     "id": "delivery-guarantees",

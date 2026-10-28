@@ -6,12 +6,13 @@ import json
 from pathlib import Path
 
 from helpers import nodes  # noqa: F401  (keeps the helper importable for checks)
+from part_common import COMMON
 from part_concepts import CONCEPTS
 from part_families import FAMILIES
 from part_push import PUSH
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULES = FAMILIES + PUSH + CONCEPTS
+MODULES = COMMON + FAMILIES + PUSH + CONCEPTS
 
 
 def mermaid(diagram: dict) -> str:
